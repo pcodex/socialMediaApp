@@ -16,6 +16,7 @@ const mykeys = require('./config/key.js');
 const User = require('./models/user');
 
 require('./passport/google-passport');
+require('./passport/facebook-passport');
 
 //initialize application
 const app = express();
@@ -92,6 +93,18 @@ app.get('/auth/google/callback',
     // Successful authentication, redirect home.
     res.redirect('/profile');
   });
+
+//Facebook routes
+app.get('/auth/facebook',
+  passport.authenticate('facebook'));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/' }),
+  (req, res) => {
+    // Successful authentication, redirect home.
+    res.redirect('/profile');
+  });
+
 
 app.get('/profile' , (req,res) =>  {
     User.findById({_id:req.user._id

@@ -3,6 +3,8 @@ const express = require('express');
 const Handlebars = require('handlebars');
 const exphbs = require('express-handlebars');
 const {allowInsecurePrototypeAccess} = require('@handlebars/allow-prototype-access');
+
+
  
 const mongoose = require('mongoose');
 const passport = require('passport');
@@ -17,9 +19,30 @@ const User = require('./models/user');
 
 require('./passport/google-passport');
 require('./passport/facebook-passport');
+require('./passport/instagram-passport');
+var https = require('https');
+
+//link helper functions
+const {
+  ensureAuthentication,
+  ensureGuest
+} = require('./helpers/auth');
+
 
 //initialize application
 const app = express();
+
+//https
+var fs = require('fs');
+var sslserverport = 3002;
+
+var httpsOptions = {
+  key: fs.readFileSync('./key.pem'),
+  cert: fs.readFileSync('./cert.pem')
+};
+https.createServer(httpsOptions, app).listen(sslserverport);
+
+
   
   app.use(cookieParser());
   app.use(bodyParser.urlencoded({ extended: false }));
@@ -48,6 +71,7 @@ app.set('view engine','handlebars');
 //set up static files to server css, js, images
 app.use(express.static('public'));
 
+
 mongoose.Promise = global.Promise;
 //connect to remote db
 mongoose.connect(mykeys.MongoURI, 
@@ -71,8 +95,10 @@ app.listen(port,()=>{
 });
 
 //handle home route
-app.get('/', (req,res) => {
- res.render('home.handlebars');
+app.get('/', ensureGuest, (req,res) => {
+ 
+  res.render('home.handlebars');
+
 });
 
 //handle about route
@@ -107,8 +133,21 @@ app.get('/auth/facebook/callback',
     res.redirect('/profile');
   });
 
+//Handle Instagram route
+  app.get('/auth/instagram',
+  passport.authenticate('instagram', { scope: 'user_profile'}
+  ));
 
-app.get('/profile' , (req,res) =>  {
+  app.get('/auth/instagram/callback', 
+  passport.authenticate('instagram', { failWithError:true, 
+                                       failureRedirect: '/' }),
+  (req, res) => {
+    // Successful authentication, redirect home.
+    res.redirect('/profile');
+  });
+
+
+app.get('/profile', ensureAuthentication, (req,res) =>  {
     User.findById({_id:req.user._id
     }).then((user) => {
         res.render('profile', {
@@ -116,6 +155,20 @@ app.get('/profile' , (req,res) =>  {
         });
     })
     
+});
+
+//Handle Email POST
+app.post('/addEmail', (req,res)=>{
+  const email = req.body.email;
+  User.findById({_id : req.user._id})
+  .then((user) => {
+    user.email = email;
+    user.save()
+    .then(() => {
+      res.redirect('/profile');
+    });
+  });
+
 });
 
 //logout user

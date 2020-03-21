@@ -171,6 +171,33 @@ app.post('/addEmail', (req,res)=>{
 
 });
 
+
+//Handle Phone POST
+app.post('/addPhone', (req,res)=>{
+  const aphone = req.body.myphone;
+  User.findById({_id : req.user._id})
+  .then((phuser) => {
+    phuser.phone = aphone;
+    phuser.save()
+    .then(() => {
+      res.redirect('/profile');
+    });
+  });
+});
+
+//Handle Location POST
+app.post('/addLocation', (req,res)=>{
+  const aloca = req.body.myloc;
+  User.findById({_id : req.user._id})
+  .then((locuser) => {
+    locuser.location = aloca;
+    locuser.save()
+    .then(() => {
+      res.redirect('/profile');
+    });
+  });
+});
+
 //logout user
 app.get('/logout', (req,res) => {
     req.logout();

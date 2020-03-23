@@ -157,6 +157,19 @@ app.get('/profile', ensureAuthentication, (req,res) =>  {
     
 });
 
+//Handle all users
+app.get('/users', (req,res) =>  {
+  User.find({})
+  .then((allusers) => {
+    res.render('users',{
+      users:allusers
+    });
+  });
+  
+});
+
+
+
 //Handle Email POST
 app.post('/addEmail', (req,res)=>{
   const email = req.body.email;

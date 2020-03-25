@@ -14,8 +14,11 @@ const cookieParser = require('cookie-parser');
 
 //load the config where the mongodb connection string is set
 const mykeys = require('./config/key.js');
-//user collec
+
+//Load user collec
 const User = require('./models/user');
+//Load Post collection
+const Post = require('./models/posts');
 
 require('./passport/google-passport');
 require('./passport/facebook-passport');
@@ -163,6 +166,19 @@ app.get('/users', (req,res) =>  {
   .then((allusers) => {
     res.render('users',{
       users:allusers
+    });
+  });
+  
+});
+
+
+//Handle one user
+app.get('/user/:id', (req,res) =>  {
+  User.findById({_id:req.params.id})
+  .then((oneuser) => {
+    console.log(oneuser.fullname);
+    res.render('singleuser',{
+      auser:oneuser
     });
   });
   

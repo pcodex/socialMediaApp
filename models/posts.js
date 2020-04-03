@@ -12,9 +12,17 @@ const postSchema = new Schema({
         type:Schema.Types.ObjectId,
         ref : 'doser'
     },
+    status : {
+        type:String,
+        default:'public'
+    },
     date:{
         type:Date,
         default:Date.now
+    },
+    allowComment:{
+        type:Boolean,
+        default:true
     },
     comments:[{
         commentBody:{
